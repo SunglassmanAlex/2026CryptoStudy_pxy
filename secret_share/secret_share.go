@@ -28,6 +28,7 @@ type Share struct {
 //
 //	包含 n 个 Share 对象的切片
 func Deal(secret fr.Element, n int, t int) []*Share {
+	// TODO: finish Deal func
 	panic("No implement error")
 }
 
@@ -45,5 +46,6 @@ func Deal(secret fr.Element, n int, t int) []*Share {
 //
 //	恢复出的原始秘密（有限域元素）
 func Combine(shares []*Share) fr.Element {
+	// TODO: finish Combine func
 	panic("No implement error")
 }
