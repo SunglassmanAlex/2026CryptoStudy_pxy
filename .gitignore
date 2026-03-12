@@ -1,0 +1,13 @@
+# JetBrains IDEs (GoLand, IntelliJ, etc.)
+.idea/
+*.iml
+
+# Go binaries and cache
+bin/
+*.exe
+*.test
+*.prof
+
+# OS specific files
+.DS_Store
+Thumbs.db
