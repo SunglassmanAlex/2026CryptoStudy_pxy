@@ -29,7 +29,34 @@ type Share struct {
 //	包含 n 个 Share 对象的切片
 func Deal(secret fr.Element, n int, t int) []*Share {
 	// TODO: finish Deal func
-	panic("No implement error")
+
+	coef := make([]fr.Element, t)
+	coef[0] = secret
+	for i := 1; i < t; i++ {
+		//coef[i].SetRandom()
+		if _, err := coef[i].SetRandom(); err != nil {
+			panic(err)
+		}
+	}
+
+	shares := make([]*Share, n)
+	for i := 0; i < n; i++ {
+		shares[i] = new(Share)
+		x := fr.NewElement(uint64(i + 1))
+		var px fr.Element
+		var y fr.Element
+		px.SetOne()
+		y.SetZero()
+		for j := 0; j < t; j++ {
+			var tmp fr.Element
+			tmp.Mul(&coef[j], &px)
+			y.Add(&y, &tmp)
+			px.Mul(&px, &x)
+		}
+		shares[i].X = x
+		shares[i].Y = y
+	}
+	return shares
 }
 
 // Combine 使用拉格朗日插值法从给定的分片中恢复原始秘密 f(0)。
@@ -47,5 +74,21 @@ func Deal(secret fr.Element, n int, t int) []*Share {
 //	恢复出的原始秘密（有限域元素）
 func Combine(shares []*Share) fr.Element {
 	// TODO: finish Combine func
-	panic("No implement error")
+	n := len(shares)
+	var sum fr.Element
+	sum.SetZero()
+	for i := 0; i < n; i++ {
+		mul := shares[i].Y
+		for j := 0; j < n; j++ {
+			if j == i {
+				continue
+			}
+			var tmp fr.Element
+			tmp.Sub(&shares[j].X, &shares[i].X)
+			tmp.Div(&shares[j].X, &tmp)
+			mul.Mul(&mul, &tmp)
+		}
+		sum.Add(&sum, &mul)
+	}
+	return sum
 }
