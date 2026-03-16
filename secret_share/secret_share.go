@@ -92,3 +92,5 @@ func Combine(shares []*Share) fr.Element {
 	}
 	return sum
 }
+
+// Oh my goodness
