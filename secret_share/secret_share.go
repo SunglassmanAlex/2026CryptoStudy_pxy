@@ -27,7 +27,7 @@ type Share struct {
 // 返回值:
 //
 //	包含 n 个 Share 对象的切片
-func Deal(secret fr.Element, n int, t int) []*Share {
+func SecretSplit(secret fr.Element, n int, t int) []*Share {
 	// TODO: finish Deal func
 
 	coef := make([]fr.Element, t)
@@ -72,7 +72,7 @@ func Deal(secret fr.Element, n int, t int) []*Share {
 // 返回值:
 //
 //	恢复出的原始秘密（有限域元素）
-func Combine(shares []*Share) fr.Element {
+func SecretCombine(shares []*Share) fr.Element {
 	// TODO: finish Combine func
 	n := len(shares)
 	var sum fr.Element
