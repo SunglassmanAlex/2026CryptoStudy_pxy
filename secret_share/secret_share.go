@@ -10,7 +10,7 @@ type Share struct {
 	Y fr.Element // 多项式在 x 处的值 f(x)
 }
 
-// Deal 将秘密 secret 拆分为 n 个分片，并设置恢复门槛为 t。
+// SecretSplit 将秘密 secret 拆分为 n 个分片，并设置恢复门槛为 t。
 //
 // 数学原理：
 // 1. 构造一个 t-1 次的多项式 f(x) = a0 + a1*x + ... + a_{t-1}*x^{t-1}。
@@ -27,39 +27,22 @@ type Share struct {
 // 返回值:
 //
 //	包含 n 个 Share 对象的切片
-func Deal(secret fr.Element, n int, t int) []*Share {
-	// TODO: finish Deal func
-
-	coef := make([]fr.Element, t)
-	coef[0] = secret
-	for i := 1; i < t; i++ {
-		//coef[i].SetRandom()
-		if _, err := coef[i].SetRandom(); err != nil {
-			panic(err)
-		}
-	}
-
-	shares := make([]*Share, n)
-	for i := 0; i < n; i++ {
-		shares[i] = new(Share)
-		x := fr.NewElement(uint64(i + 1))
-		var px fr.Element
-		var y fr.Element
-		px.SetOne()
-		y.SetZero()
-		for j := 0; j < t; j++ {
-			var tmp fr.Element
-			tmp.Mul(&coef[j], &px)
-			y.Add(&y, &tmp)
-			px.Mul(&px, &x)
-		}
-		shares[i].X = x
-		shares[i].Y = y
-	}
-	return shares
+func SecretSplit(secret fr.Element, n int, t int) []*Share {
+	// TODO: finish SecretSplit func
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
+	panic("No implement error")
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
 }
 
-// Combine 使用拉格朗日插值法从给定的分片中恢复原始秘密 f(0)。
+// SecretCombine 使用拉格朗日插值法从给定的分片中恢复原始秘密 f(0)。
 //
 // 数学原理：
 // 给定 k 个点 (x0, y0), ..., (xk-1, yk-1)，其中 k >= t，
@@ -72,25 +55,17 @@ func Deal(secret fr.Element, n int, t int) []*Share {
 // 返回值:
 //
 //	恢复出的原始秘密（有限域元素）
-func Combine(shares []*Share) fr.Element {
-	// TODO: finish Combine func
-	n := len(shares)
-	var sum fr.Element
-	sum.SetZero()
-	for i := 0; i < n; i++ {
-		mul := shares[i].Y
-		for j := 0; j < n; j++ {
-			if j == i {
-				continue
-			}
-			var tmp fr.Element
-			tmp.Sub(&shares[j].X, &shares[i].X)
-			tmp.Div(&shares[j].X, &tmp)
-			mul.Mul(&mul, &tmp)
-		}
-		sum.Add(&sum, &mul)
-	}
-	return sum
+func SecretCombine(shares []*Share) fr.Element {
+	// TODO: finish SecretCombine func
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
+	panic("No implement error")
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
 }
-
-// Oh my goodness
