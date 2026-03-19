@@ -19,3 +19,17 @@ func TestIsPrime(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkIsPrime(b *testing.B) {
+	n := big.NewInt(998244353)
+	for i := 0; i < b.N; i++ {
+		IsPrime(n)
+	}
+}
+
+func BenchmarkProbablyPrime(b *testing.B) {
+	n := big.NewInt(998244353)
+	for i := 0; i < b.N; i++ {
+		n.ProbablyPrime(20)
+	}
+}
