@@ -8,11 +8,19 @@ type Equation struct {
 }
 
 func SolveSimpleCRT(equations []Equation) *big.Int {
-	// TODO: finish SolveSimpleCRT. You can always assume that the moduli are pairwise coprime.
+	// finish SolveSimpleCRT. You can always assume that the moduli are pairwise coprime.
 	mul := big.NewInt(1)
-	n := len(equations)
-	for i := 0; i < n; i++ {
-		mul.Mul(mul, equations[i]->Modulus)
+	for _, eq := range equations {
+		mul.Mul(mul, eq.Modulus)
 	}
-	return nil
+	sum := big.NewInt(0)
+	for _, eq := range equations {
+		otherMul := new(big.Int).Div(mul, eq.Modulus)
+		cur := new(big.Int).Mul(otherMul, eq.Remainder)
+		t := new(big.Int).ModInverse(otherMul, eq.Modulus)
+		cur.Mul(cur, t)
+		sum.Add(sum, cur)
+		sum.Mod(sum, mul)
+	}
+	return sum
 }

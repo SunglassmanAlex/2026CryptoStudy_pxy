@@ -57,8 +57,8 @@ func generateRandomPrime(bits int) *big.Int {
 }
 
 func TestSolveSimpleCRT_PropertyBased(t *testing.T) {
-	numRounds := 1000
-	numEquations := 5
+	numRounds := 10000
+	numEquations := 10
 	bitSize := 64
 
 	for i := 0; i < numRounds; i++ {
