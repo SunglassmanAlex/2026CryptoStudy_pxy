@@ -12,11 +12,11 @@ func TestRecoverWithExactShares(t *testing.T) {
 	secret.SetRandom() // 生成随机秘密
 
 	n, threshold := 5, 3
-	shares := Deal(secret, n, threshold)
+	shares := SecretSplit(secret, n, threshold)
 
 	// 取前 t (3) 个份额
 	subset := shares[:threshold]
-	recoveredSecret := Combine(subset)
+	recoveredSecret := SecretCombine(subset)
 
 	if !recoveredSecret.Equal(&secret) {
 		t.Errorf("恢复失败：期望 %s, 得到 %s", secret.String(), recoveredSecret.String())
@@ -29,11 +29,11 @@ func TestRecoverWithMoreShares(t *testing.T) {
 	secret.SetUint64(123456789)
 
 	n, threshold := 10, 4
-	shares := Deal(secret, n, threshold)
+	shares := SecretSplit(secret, n, threshold)
 
 	// 取前 7 个份额 (n > 7 > threshold)
 	subset := shares[:7]
-	recoveredSecret := Combine(subset)
+	recoveredSecret := SecretCombine(subset)
 
 	if !recoveredSecret.Equal(&secret) {
 		t.Error("提供冗余份额时恢复秘密失败")
@@ -46,11 +46,11 @@ func TestFailWithFewerShares(t *testing.T) {
 	secret.SetRandom()
 
 	n, threshold := 5, 3
-	shares := Deal(secret, n, threshold)
+	shares := SecretSplit(secret, n, threshold)
 
 	// 只取 2 个份额 (少于门槛 3)
 	subset := shares[:threshold-1]
-	recoveredSecret := Combine(subset)
+	recoveredSecret := SecretCombine(subset)
 
 	if recoveredSecret.Equal(&secret) {
 		t.Error("安全漏洞：份额不足时竟然恢复了正确的秘密")
