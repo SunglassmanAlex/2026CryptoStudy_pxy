@@ -19,3 +19,17 @@ go mod tidy
 ## [2026-03-19]chinese remainder theorem
 
 We will implement chinese remainder theorem(crt). You should assume the moduli in equation are always co-prime.
+
+Before start your programming work, run following instructions in your terminal
+```bash
+git fetch upstream
+git merge upstream/study/secret_share
+```
+
+or
+
+```
+git pull upstream study/secret_share
+```
+
+You will encounter merge conflicts. Please solve it!
