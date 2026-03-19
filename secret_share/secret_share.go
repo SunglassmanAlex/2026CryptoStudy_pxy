@@ -29,7 +29,17 @@ type Share struct {
 //	包含 n 个 Share 对象的切片
 func SecretSplit(secret fr.Element, n int, t int) []*Share {
 	// TODO: finish SecretSplit func
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
 	panic("No implement error")
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
 }
 
 // SecretCombine 使用拉格朗日插值法从给定的分片中恢复原始秘密 f(0)。
@@ -47,5 +57,15 @@ func SecretSplit(secret fr.Element, n int, t int) []*Share {
 //	恢复出的原始秘密（有限域元素）
 func SecretCombine(shares []*Share) fr.Element {
 	// TODO: finish SecretCombine func
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
 	panic("No implement error")
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
+	// conflict line
 }
