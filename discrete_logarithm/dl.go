@@ -11,6 +11,7 @@ type DLOption int
 const (
 	DLBruteForce DLOption = iota
 	DLBSGS
+	DLPollardRho
 	DLNFS
 )
 
@@ -20,6 +21,8 @@ func ComputeDiscreteLogarithm(a, b, n *big.Int, op DLOption) (*big.Int, error) {
 		return computeDiscreteLogarithmBruteForced(a, b, n)
 	case DLBSGS:
 		return computeDiscreteLogarithmBSGS(a, b, n)
+	case DLPollardRho:
+		return computeDiscreteLogarithmPollardRho(a, b, n)
 	case DLNFS:
 		return computeDiscreteLogarithmNFS(a, b, n)
 	}
@@ -110,6 +113,113 @@ func ceilSqrt(n *big.Int) *big.Int {
 		sqrtF.Add(sqrtF, one)
 	}
 	return sqrtF
+}
+
+// ─── Pollard's Rho for Discrete Logarithm ────────────────────────────────────
+
+// PRState 记录步进状态：x = a^alpha * b^beta (mod n)
+type PRState struct {
+	x     *big.Int
+	alpha *big.Int
+	beta  *big.Int
+}
+
+// computeDiscreteLogarithmPollardRho 寻找 x 使得 a^x ≡ b (mod n)
+// 复杂度期望为 O(sqrt(order))
+func computeDiscreteLogarithmPollardRho(a, b, n *big.Int) (*big.Int, error) {
+	if n.Cmp(big.NewInt(2)) <= 0 {
+		return nil, fmt.Errorf("modulus n must be > 2")
+	}
+
+	// 1. 获取 a 在模 n 下的阶 (Order)
+	// 这是解决“结果不匹配”的关键，不能简单假设是 n-1
+	ord := elementOrder(a, n)
+
+	// 2. 定义状态转移函数 (三分法伪随机游走)
+	nextState := func(curr PRState) PRState {
+		res := PRState{
+			x:     new(big.Int).Set(curr.x),
+			alpha: new(big.Int).Set(curr.alpha),
+			beta:  new(big.Int).Set(curr.beta),
+		}
+
+		// 根据 x % 3 划分子集
+		m := new(big.Int).Mod(curr.x, big.NewInt(3))
+		switch m.Int64() {
+		case 1: // S1: x = x*b, alpha = alpha, beta = beta + 1
+			res.x.Mul(res.x, b).Mod(res.x, n)
+			res.beta.Add(res.beta, big.NewInt(1)).Mod(res.beta, ord)
+		case 0: // S2: x = x*x, alpha = 2*alpha, beta = 2*beta
+			res.x.Mul(res.x, res.x).Mod(res.x, n)
+			res.alpha.Mul(res.alpha, big.NewInt(2)).Mod(res.alpha, ord)
+			res.beta.Mul(res.beta, big.NewInt(2)).Mod(res.beta, ord)
+		case 2: // S3: x = x*a, alpha = alpha + 1, beta = beta
+			res.x.Mul(res.x, a).Mod(res.x, n)
+			res.alpha.Add(res.alpha, big.NewInt(1)).Mod(res.alpha, ord)
+		}
+		return res
+	}
+
+	// 3. 初始化乌龟和兔子
+	tortoise := PRState{big.NewInt(1), big.NewInt(0), big.NewInt(0)}
+	hare := nextState(tortoise)
+
+	// 4. 迭代上限设为 10*sqrt(n)，确保在大数下有足够机会碰撞
+	maxIter := new(big.Int).Sqrt(n)
+	maxIter.Mul(maxIter, big.NewInt(10))
+
+	for i := big.NewInt(0); i.Cmp(maxIter) < 0; i.Add(i, big.NewInt(1)) {
+		if tortoise.x.Cmp(hare.x) == 0 {
+			// 5. 发现碰撞：a^at * b^bt ≡ a^ah * b^bh (mod n)
+			// => (bh - bt) * x ≡ (at - ah) (mod ord)
+			u := new(big.Int).Sub(tortoise.alpha, hare.alpha)
+			u.Mod(u, ord)
+			v := new(big.Int).Sub(hare.beta, tortoise.beta)
+			v.Mod(v, ord)
+
+			// 求解线性同余方程 v*x ≡ u (mod ord)
+			sol, err := solveLinearCongruenceExtended(v, u, ord, a, b, n)
+			if err == nil {
+				return sol, nil
+			}
+		}
+		tortoise = nextState(tortoise)
+		hare = nextState(nextState(hare))
+	}
+
+	return nil, fmt.Errorf("Pollard's rho failed to converge: no collision found within %v steps", maxIter)
+}
+
+// solveLinearCongruenceExtended 求解 ax ≡ b (mod m) 并验证原方程
+func solveLinearCongruenceExtended(a, b, m, base, target, mod *big.Int) (*big.Int, error) {
+	g := new(big.Int)
+	x0 := new(big.Int)
+	// g = gcd(a, m) = a*x0 + m*y0
+	g.GCD(x0, nil, a, m)
+
+	// 检查是否有解：b 必须被 gcd(a, m) 整除
+	rem := new(big.Int).Mod(b, g)
+	if rem.Sign() != 0 {
+		return nil, fmt.Errorf("no solution")
+	}
+
+	// 基础解: x = x0 * (b/g) mod (m/g)
+	mDivG := new(big.Int).Div(m, g)
+	res := new(big.Int).Div(b, g)
+	res.Mul(res, x0).Mod(res, mDivG)
+
+	// 关键：ax ≡ b (mod m) 在 [0, m-1] 范围内共有 g 个解
+	// 我们必须遍历它们并验证 base^x ≡ target (mod mod)
+	for k := big.NewInt(0); k.Cmp(g) < 0; k.Add(k, big.NewInt(1)) {
+		candidate := new(big.Int).Mul(k, mDivG)
+		candidate.Add(candidate, res).Mod(candidate, m)
+
+		if new(big.Int).Exp(base, candidate, mod).Cmp(target) == 0 {
+			return candidate, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no valid exponent found in solution set")
 }
 
 // ─── Index Calculus (conceptual foundation of NFS-DL) ─────────────────────────
