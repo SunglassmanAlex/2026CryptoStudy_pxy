@@ -1,5 +1,7 @@
 package birthday_attack
 
+import "math/rand/v2"
+
 // BirthdayAttackProbability 通过蒙特卡洛模拟估计生日碰撞概率。
 //
 // 参数：
@@ -17,5 +19,23 @@ func BirthdayAttackProbability(universeSize, sampleSize, numTrials int) float64 
 	// TODO
 	// 提示，你应该使用rand.IntN方法。它来自"math/rand/v2"。如果路径不对，请重新导入。
 	// 参考：https://go.dev/blog/randv2
-	return 0.0
+
+	cnt := 0
+	for i := 0; i < numTrials; i++ {
+		vis := make(map[int]struct{})
+		flag := false
+		for j := 0; j < sampleSize; j++ {
+			x := rand.IntN(universeSize)
+			if _, ok := vis[x]; ok {
+				flag = true
+				break
+			}
+			vis[x] = struct{}{}
+		}
+		if flag {
+			cnt++
+		}
+	}
+
+	return float64(cnt) / float64(numTrials)
 }

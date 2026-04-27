@@ -23,7 +23,28 @@ func SmallSpaceBirthdayAttack(h func() hash.Hash) (x, y []byte) {
 	// --- 第一阶段：寻找环（快慢指针相遇） ---
 	// TODO
 
+	slow := step(start)
+	fast := step(step(start))
+	for !bytes.Equal(slow, fast) {
+		slow = step(slow)
+		fast = step(step(fast))
+	}
 	// --- 第二阶段：寻找碰撞入口 ---
 	// TODO
-	return nil, nil
+
+	ring := slow
+	beg := start
+	for !bytes.Equal(ring, beg) {
+		ring = step(ring)
+		beg = step(beg)
+	}
+	prevOutRing := start
+	for !bytes.Equal(step(prevOutRing), ring) {
+		prevOutRing = step(prevOutRing)
+	}
+	prevInRing := ring
+	for !bytes.Equal(step(prevInRing), ring) {
+		prevInRing = step(prevInRing)
+	}
+	return prevOutRing, prevInRing
 }
